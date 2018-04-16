@@ -1,0 +1,106 @@
+#!guile \
+-e main -s
+!#
+
+;; SDL1.2 doc:
+;; https://www.libsdl.org/release/SDL-1.2.15/docs/html/
+(use-modules ((sdl sdl) #:prefix SDL:)
+             (srfi srfi-1)
+             (srfi srfi-2))
+
+;; Initialize the video subsystem.  TODO: Need more subsystems?
+(SDL:init 'video)
+
+;; Window title.
+(SDL:set-caption "Bomberone")
+
+;; Folders.
+;; TODO: Name properly, or use a global structure?
+(define image-dir "textures/")
+
+;; Utility to test if a path is a directory.
+(define (file? f)
+  (let* ((stats (stat f))
+         (type (stat:type stats)))
+    (eq? type 'regular)))
+
+;; Build a ring of image file names.
+(define image-ring
+  (let ((dir (opendir image-dir)))
+    (letrec ((D (lambda (ls)
+                  (let ((file (readdir dir)))
+                    (if (eof-object? file)
+                        (begin (closedir dir) ls)
+                        (D (cons (string-append image-dir file)
+                                 ls)))))))
+      (apply circular-list (reverse (filter file? (D '())))))))
+
+;; Functions to cycle through the ring.
+(define (next-image)
+  (let ((next (car image-ring)))
+    (set! image-ring (cdr image-ring))
+    next))
+
+(define (prev-image)
+  (let ((orig image-ring))
+    (while (not (eq? (cddr image-ring) orig))
+      (set! image-ring (cdr image-ring)))
+    (let ((image (car image-ring)))
+      (set! image-ring (cdr image-ring))
+      image)))
+
+;; Display an image given a filename.
+(define (show file)
+  (and-let* ((image (SDL:load-image file)))
+    (SDL:set-video-mode (SDL:surface:w image) (SDL:surface:h image) 24)
+    (SDL:blit-surface image)))
+
+;; TODO: Use OS separator.
+(define player (SDL:load-image (string-append image-dir "/character.png")))
+(define player-pos (SDL:make-rect 0 0 32 32))
+(define (move-player)
+  (SDL:rect:set-x! player-pos (+ (SDL:rect:x player-pos) 1))
+  (SDL:blit-surface player #f (SDL:get-video-surface) player-pos))
+
+(define (main args)
+  ;; Fullscreen does not work on EXWM it seems.
+  ;; (display (format "debug: ~a" (SDL:toggle-full-screen)))
+
+  ;; show the first image
+  (show (string-append image-dir "/background.png"))
+  (move-player)
+  (SDL:flip)
+
+  ;; event handler
+  (let handle ((e (SDL:make-event)))
+    (if (SDL:wait-event e)
+        ;; (SDL:poll-event e)
+        (case (SDL:event:type e)
+          ((key-down)
+           (case (SDL:event:key:keysym:sym e)
+             ((left backspace)
+              (show (string-append image-dir "/background.png"))
+              ;; (show (prev-image))
+              (move-player)
+              (SDL:flip))
+             ((right space)
+              ;; (show (next-image))
+              (show (string-append image-dir "/background.png"))
+              (move-player)
+              (SDL:flip))
+             ((escape q)
+              (SDL:quit)
+              (quit))))
+          ((key-up)
+           (case (SDL:event:key:keysym:sym e)
+             ((left backspace)
+              (show (string-append image-dir "/background.png"))
+              ;; (show (prev-image))
+              (move-player)
+              (SDL:flip))
+             ((right space)
+              (show (string-append image-dir "/background.png"))
+              ;; (show (next-image))
+              (move-player)
+              (SDL:flip))))))
+    (handle e)))
