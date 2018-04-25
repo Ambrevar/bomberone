@@ -2,20 +2,19 @@
 -e main -s
 !#
 
-;; TODO: Add prefix.
 (use-modules (sdl2)
-             (sdl2 render)
-             (sdl2 image)
-             (sdl2 surface)
-             (sdl2 video))
+             ((sdl2 render) #:prefix sdl:)
+             ((sdl2 image) #:prefix sdl:)
+             ((sdl2 surface) #:prefix sdl:)
+             ((sdl2 video) #:prefix sdl:))
 
 (define (draw ren)
-  (let* ((surface (load-image "textures/background.png"))
-         (texture (surface->texture ren surface)))
+  (let* ((surface (sdl:load-image "textures/background.png"))
+         (texture (sdl:surface->texture ren surface)))
     ;; TODO: Why do we specify "ren" twice?
-    (clear-renderer ren)
-    (render-copy ren texture)
-    (present-renderer ren)
+    (sdl:clear-renderer ren)
+    (sdl:render-copy ren texture)
+    (sdl:present-renderer ren)
     (sleep 2)))
 
 ;; ;; TODO: Use OS separator.
@@ -27,8 +26,8 @@
 
 (define (main)
   (sdl-init)
-  (call-with-window (make-window)
+  (sdl:call-with-window (sdl:make-window)
                     (lambda (window)
-                      (call-with-renderer (make-renderer window) draw)))
+                      (sdl:call-with-renderer (sdl:make-renderer window) draw)))
 
   (sdl-quit))
