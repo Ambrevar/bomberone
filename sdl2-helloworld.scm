@@ -1,11 +1,10 @@
-;; TODO: Try to get this to work.
 (use-modules (sdl2)
              (sdl2 render)
              (sdl2 surface)
              (sdl2 video))
 
 (define (draw ren)
-  (let* ((surface (load-bmp "hello.bmp"))
+  (let* ((surface (load-bmp "textures/background.bmp"))
          (texture (surface->texture ren surface)))
     (clear-renderer ren)
     (render-copy ren texture)
