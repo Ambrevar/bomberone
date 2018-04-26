@@ -2,6 +2,8 @@
 -e main -s
 !#
 
+;; requires: guile-sdl2 master
+
 ;; TODO: Size background properly when windowed: looks like we need to load
 ;; background first and get its dimensions.
 
@@ -19,21 +21,6 @@
 (define *player* #f)
 (define *background* #f)
 
-(define* (render-copy renderer texture #:optional srcrect dstrect)
-  "Copy TEXTURE to the rendering target of RENDERER."
-  (let ((result (SDL:sdl-render-copy ((@@ (sdl2 render) unwrap-renderer) renderer)
-                                     ((@@ (sdl2 render) unwrap-texture) texture)
-                                     (or (and srcrect
-                                              (make-c-struct (list int int int int)
-                                                             srcrect))
-                                         %null-pointer)
-                                     (or (and dstrect
-                                              (make-c-struct (list int int int int)
-                                                             dstrect))
-                                         %null-pointer))))
-    (unless (zero? result)
-      (sdl-error "render-copy" "failed to copy texture"))))
-
 (define (process-event event)
   (when event
     (cond
@@ -50,7 +37,6 @@
         (background-texture (sdl:surface->texture ren *background*)))
     ;; TODO: Can we get window from renderer?
     ;; TODO: Why do we specify "ren" in surface->texture?  Maybe because of hardware specificities.
-
     (define update-interval (round (/ 1000 *fps*)))
     ;; TODO: Account for lag.
     (let loop ((previous-time (sdl-ticks)))
@@ -61,8 +47,8 @@
               (set! previous-time current-time))
             (begin
               (sdl:clear-renderer ren)
-              (render-copy ren background-texture)
-              (render-copy ren player-texture #f '(0 0 32 32))
+              (sdl:render-copy ren background-texture)
+              (sdl:render-copy ren player-texture #:dstrect '(0 0 32 32))
               (sdl:present-renderer ren)))
         (when *running?*
           (loop current-time))))))
