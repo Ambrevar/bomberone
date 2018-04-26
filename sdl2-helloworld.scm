@@ -7,6 +7,7 @@
 
 (use-modules (sdl2)
              ((sdl2 render) #:prefix sdl:)
+             ((sdl2 events) #:prefix sdl:)
              ((sdl2 image) #:prefix sdl:)
              ((sdl2 surface) #:prefix sdl:)
              ((sdl2 video) #:prefix sdl:))
@@ -17,10 +18,17 @@
     ;; TODO: Can we get window from renderer?
     ;; (sdl:set-window-size! window (list (sdl:surface-width surface) (sdl:surface-height surface)))
     ;; TODO: Why do we specify "ren" in surface->texture?  Maybe because of hardware specificities.
-    (sdl:clear-renderer ren)
-    (sdl:render-copy ren texture)
-    (sdl:present-renderer ren)
-    (sleep 2)))
+    (let loop ((e (sdl:poll-event)))
+      (cond
+       ((sdl:keyboard-down-event? e)
+        (display "down "))
+       ((sdl:keyboard-up-event? e)
+        (display "up ")))
+      (sdl:clear-renderer ren)
+      (sdl:render-copy ren texture)
+      (sdl:present-renderer ren)
+      (sleep 1)
+      (loop (sdl:poll-event)))))
 
 ;; ;; TODO: Use OS separator.
 ;; (define player (SDL:load-image (string-append image-dir "/character.png")))
