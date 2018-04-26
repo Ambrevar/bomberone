@@ -24,10 +24,9 @@
 ;;   (SDL:rect:set-x! player-pos (+ (SDL:rect:x player-pos) distance))
 ;;   (SDL:blit-surface player #f (SDL:get-video-surface) player-pos))
 
-(define (main)
+(define* (main #:optional args)
   (sdl-init)
   (sdl:call-with-window (sdl:make-window)
-                    (lambda (window)
-                      (sdl:call-with-renderer (sdl:make-renderer window) draw)))
-
+                        (lambda (window)
+                          (sdl:call-with-renderer (sdl:make-renderer window) draw)))
   (sdl-quit))
