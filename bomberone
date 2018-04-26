@@ -6,7 +6,8 @@
 ;; https://www.libsdl.org/release/SDL-1.2.15/docs/html/
 (use-modules ((sdl sdl) #:prefix SDL:)
              (srfi srfi-1)
-             (srfi srfi-2))
+             (srfi srfi-2)
+             (system repl coop-server))
 
 ;; Initialize the video subsystem.  TODO: Need more subsystems?
 (SDL:init 'video)
@@ -102,6 +103,9 @@
         ))
      )))
 
+;; repl server
+(define repl #f)
+
 (define fps 30)
 (define (main)
   ;; TODO: Fullscreen does not work on EXWM it seems.  Use flag in `SDL:set-video-mode'?
@@ -113,6 +117,9 @@
   (SDL:flip)
   ;; (display  (SDL:enable-key-repeat 0 0))
 
+  ;; Start a REPL server for live hacking.
+  (set! repl (spawn-coop-repl-server))
+
   ;; Reset status in case we got interrupted.
   (set! running? #t)
 
@@ -122,4 +129,6 @@
       (when (SDL:wait-event e)
         (event-handler e))
       (SDL:delay (quotient 1000 fps))
+      (when repl
+        (poll-coop-repl-server repl))
       (handle e))))
