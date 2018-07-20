@@ -73,7 +73,7 @@
      (case (SDL:event:key:keysym:sym e)
        ((left backspace)
         (show (string-append image-dir "/background.png"))
-        (move-player -1)
+        (move-player -5)
         (SDL:flip))
        ((right space)
         (show (string-append image-dir "/background.png"))
@@ -107,7 +107,7 @@
 (define repl #f)
 
 (define fps 30)
-(define (main)
+(define* (main #:optional args)
   ;; TODO: Fullscreen does not work on EXWM it seems.  Use flag in `SDL:set-video-mode'?
   ;; (display (format "debug: ~a" (SDL:toggle-full-screen)))
 
